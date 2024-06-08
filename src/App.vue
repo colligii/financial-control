@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue"
-import Error from './components/shared/Error.vue'
+import Error from "./components/shared/Error.vue";
 import { RouterView } from 'vue-router'
 
 const message = ref();
@@ -13,6 +13,7 @@ function toggleError(msg: string) {
 </script>
 
 <template>
+  
   <Error :message="message" :timesExecuted="timesExecuted"></Error>
   <RouterView @toggle-error="toggleError"/>
 </template>
