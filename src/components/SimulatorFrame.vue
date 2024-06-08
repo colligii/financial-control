@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { vMaska } from 'maska/vue';
+import { useRouter } from "vue-router"
 import { ref, type ModelRef } from 'vue';
+import { validateInterestPayload } from '@/util/validateInterestPayload';
 
+const router = useRouter();
 const initialValue: ModelRef<string | undefined, string> = defineModel('initial');
 const monthValue: ModelRef<string | undefined, string> = defineModel('month');
 const feeRate = ref();
@@ -42,16 +45,25 @@ function sendForm(e: Event) {
         feeType: feeType.value?.value,
         periodType: periodType.value?.value
     }
+    const getPayloadIsValid = validateInterestPayload(data);
 
-    if(!data.period || !data.fee)
-        return emit('toggle-error', 'O periodo ou a taxa não estão definidos')
+    let errorMessage = 'Erro ao entrar na pagina de calculo';
 
-    console.log(data);
+    // data validation
+    if(!getPayloadIsValid.valid) {
+        if(Array.isArray(getPayloadIsValid?.error) && getPayloadIsValid.error[0]) {
+            errorMessage = getPayloadIsValid.error[0];
+        }
+
+        return emit('toggle-error', errorMessage);
+    }
+
+    router.push({ name: 'graph', query: data });
 }
 </script>
 
 <template>
-    <form @submit="sendForm" class="grid grid-cols-1 md:grid-cols-2 gap-2 p-6 border-2 bg-orange-100 rounded-lg max-w-xl m-4">
+    <form @submit="sendForm" class="grid grid-cols-1 md:grid-cols-2 gap-2 p-6 border-2 bg-orange-100 rounded-lg max-w-xl">
         <h1 class="text-blue-400 text-xl font-bold md:col-span-2">
             Simulador de Juros Compostos
         </h1>
@@ -75,8 +87,8 @@ function sendForm(e: Event) {
             <div class="flex w-full">
                 <input ref="feeRate" class="flex-1 min-w-0" v-maska data-maska="#####">
                 <select ref="feeType">
-                    <option value="year">Anual</option>
-                    <option value="month">Mensal</option>
+                    <option value="year">% Anual</option>
+                    <option value="month">% Mensal</option>
                 </select>
             </div>
         </div>

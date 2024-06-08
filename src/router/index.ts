@@ -1,4 +1,5 @@
 import Main from '@/views/Main.vue'
+import Graph from "@/views/Graph.vue"
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
@@ -7,7 +8,12 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: Main,
+      component: Main
+    },
+    {
+      path: '/graph',
+      name: 'graph',
+      component: Graph,
     }
   ]
 })
