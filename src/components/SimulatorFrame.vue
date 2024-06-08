@@ -61,7 +61,6 @@ function sendForm(e: Event) {
         periodType: periodType.value?.value
     }
 
-    console.log(data)
     const getPayloadIsValid = validateInterestPayload(data);
 
     let errorMessage = 'Erro ao entrar na pagina de calculo';

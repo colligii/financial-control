@@ -7,8 +7,6 @@ export const validateInterestPayload = ({ initial, month, fee, period, feeType, 
         error.error.push(msg);
     }
 
-    console.log(initial, month)
-
     if(isNaN(initial) || initial < 0)
         setErrorMessage('O Valor inicial precisa ser maior ou igual a 0')
     if(isNaN(month) || month <= 0)
