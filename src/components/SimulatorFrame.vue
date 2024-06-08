@@ -8,6 +8,7 @@ const feeRate = ref();
 const feeType = ref();
 const periodType = ref();
 const period = ref();
+const emit = defineEmits(['toggle-error']);
 
 function setInitialValue() {
     const inputValue = initialValue.value?.replace(/\D/ig, '');
@@ -43,7 +44,7 @@ function sendForm(e: Event) {
     }
 
     if(!data.period || !data.fee)
-        return alert('error')
+        return emit('toggle-error', 'O periodo ou a taxa não estão definidos')
 
     console.log(data);
 }
