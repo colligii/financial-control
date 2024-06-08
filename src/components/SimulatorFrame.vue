@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { vMaska } from 'maska/vue';
 import { useRouter } from "vue-router"
 import { ref, type ModelRef } from 'vue';
 import { validateInterestPayload } from '@/util/validateInterestPayload';
