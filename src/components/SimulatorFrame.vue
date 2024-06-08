@@ -7,51 +7,68 @@ import { validateInterestPayload } from '@/util/validateInterestPayload';
 const router = useRouter();
 const initialValue: ModelRef<string | undefined, string> = defineModel('initial');
 const monthValue: ModelRef<string | undefined, string> = defineModel('month');
-const feeRate = ref();
+const feeRate: ModelRef<string | undefined, string> = defineModel('feeRate');
+const period: ModelRef<string | undefined, string> = defineModel('period');
 const feeType = ref();
 const periodType = ref();
-const period = ref();
 const emit = defineEmits(['toggle-error']);
 
-function setInitialValue() {
-    const inputValue = initialValue.value?.replace(/\D/ig, '');
+function setCustomValue(model: ModelRef<string | undefined, string>, options?: Intl.NumberFormatOptions, extraFn?: (number: number) => number, divider?: number) {
 
-    if (!inputValue || inputValue == '' || Number(inputValue) == 0) {
-        initialValue.value = '';
+    let inputValue = Number(model.value?.replace(/\D/ig, '') || '0') / (divider ?? 100);
+
+    if (isNaN(inputValue) || inputValue == 0) {
+        model.value = '';
         return;
     }
 
-    initialValue.value = (Number(inputValue) / 100).toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+    if (extraFn) {
+        inputValue = extraFn(inputValue);
+    }
+
+    model.value = inputValue.toLocaleString('pt-br', options);
+
+}
+
+function setInitialValue() {
+    setCustomValue(initialValue, { style: 'currency', currency: 'BRL' });
 }
 
 function setMonthValue() {
-    const inputValue = monthValue.value?.replace(/\D/ig, '');
+    setCustomValue(monthValue, { style: 'currency', currency: 'BRL' })
+}
 
-    if (!inputValue || inputValue == '' || Number(inputValue) == 0) {
-        monthValue.value = '';
-        return;
-    }
+function setFeeValue() {
+    setCustomValue(feeRate, { minimumFractionDigits: 2 }, number => number > 5000 ? 5000 : number);
+}
 
-    monthValue.value = (Number(inputValue) / 100).toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+function setPeriodValue() {
+    setCustomValue(period, undefined, number => (number) > 50000 ? 50000 : Math.floor(number), 1);
+}
+
+function getValue(model: ModelRef<string | undefined, string>, divider?: number) {
+    return Number(model.value?.replace(/\D/ig, '') || '0') / (divider ?? 100)
 }
 
 function sendForm(e: Event) {
     e.preventDefault();
     const data = {
-        initial: Number(initialValue.value?.replace(/\D/ig, '') || '0') / 100,
-        month: Number(monthValue.value?.replace(/\D/ig, '') || '0') / 100,
-        fee: Number(feeRate.value?.value || '0'),
-        period: Number(period.value?.value || '0'),
+        initial: getValue(initialValue),
+        month: getValue(monthValue),
+        fee: getValue(feeRate),
+        period: getValue(period, 1),
         feeType: feeType.value?.value,
         periodType: periodType.value?.value
     }
+
+    console.log(data)
     const getPayloadIsValid = validateInterestPayload(data);
 
     let errorMessage = 'Erro ao entrar na pagina de calculo';
 
     // data validation
-    if(!getPayloadIsValid.valid) {
-        if(Array.isArray(getPayloadIsValid?.error) && getPayloadIsValid.error[0]) {
+    if (!getPayloadIsValid.valid) {
+        if (Array.isArray(getPayloadIsValid?.error) && getPayloadIsValid.error[0]) {
             errorMessage = getPayloadIsValid.error[0];
         }
 
@@ -63,7 +80,8 @@ function sendForm(e: Event) {
 </script>
 
 <template>
-    <form @submit="sendForm" class="grid grid-cols-1 md:grid-cols-2 gap-2 p-6 border-2 bg-orange-100 rounded-lg max-w-xl">
+    <form @submit="sendForm"
+        class="grid grid-cols-1 md:grid-cols-2 gap-2 p-6 border-2 bg-orange-100 rounded-lg max-w-xl">
         <h1 class="text-blue-400 text-xl font-bold md:col-span-2">
             Simulador de Juros Compostos
         </h1>
@@ -85,7 +103,7 @@ function sendForm(e: Event) {
         <div>
             <span>Taxa de Juros</span>
             <div class="flex w-full">
-                <input ref="feeRate" class="flex-1 min-w-0" v-maska data-maska="#####">
+                <input v-model="feeRate" class="flex-1 min-w-0" @input="setFeeValue">
                 <select ref="feeType">
                     <option value="year">% Anual</option>
                     <option value="month">% Mensal</option>
@@ -95,7 +113,7 @@ function sendForm(e: Event) {
         <div>
             <span>Período</span>
             <div class="flex w-full">
-                <input ref="period" class="flex-1 min-w-0" v-maska data-maska="##########">
+                <input v-model="period" class="flex-1 min-w-0" @input="setPeriodValue">
                 <select ref="periodType">
                     <option value="year">Ano(s)</option>
                     <option value="month">Mes(es)</option>
@@ -103,7 +121,8 @@ function sendForm(e: Event) {
             </div>
         </div>
         <div class="flex justify-center md:col-span-2">
-            <input class="p-2 text-white font-bold rounded border-2 border-orange-400 bg-orange-300" type="submit" value="Calcular">
+            <input class="p-2 text-white font-bold rounded border-2 border-orange-400 bg-orange-300" type="submit"
+                value="Calcular">
         </div>
     </form>
 </template>
